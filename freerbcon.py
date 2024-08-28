@@ -31,21 +31,14 @@ class Bond():
 	rating2: str
 
 
-def form_header(header_list) -> str:
-	head = sep.join(header_list)
-	head = "".join([head, endl])
-	return head
-
-
-def form_record(string) -> str:
-	out_string = string.replace(".", ",")
-	out_string = "".join([out_string, sep])
+def form_record(strings) -> str:
+	out_string = sep.join(strings)
+	out_string = "".join([out_string, endl])
+	out_string = out_string.replace(".",",")
 	return out_string
 
 
 def convert():
-	# writeQueue = Queue()
-
 	try:
 		f = open(in_file, "r", encoding="UTF-8")
 	except FileNotFoundError:
@@ -62,7 +55,7 @@ def convert():
 		print("Converter: Raw data is unaligned!")
 		return
 	
-	bonds = []
+	# bonds = []
 
 	# for i in range(0, len(raw_string_list), params):
 	# 	bond = Bond(raw_string_list[i:params])
@@ -71,16 +64,12 @@ def convert():
 
 	try:
 		with open(out_file, "w") as f:
-			cnt = 0
 
-			f.write(form_header(header))
+			f.write(form_record(header))
 			""" зная, сколько полей на одну запись, делаем в выходном файле новую строку """
-			for i in raw_string_list:
-				f.write(form_record(i))
-				cnt += 1
-				if cnt == params:
-					cnt = 0
-					f.write(endl)
+			for i in range(0, len(raw_string_list), params):
+				f.write(form_record(raw_string_list[i:i+params]))
+				
 		print("Converter: All records have been written!")
 
 	except PermissionError:
