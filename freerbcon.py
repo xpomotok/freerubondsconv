@@ -11,25 +11,37 @@ header = ["Наименование", "Сектор", "ISIN", "Листинг", 
           "Объём торгов", "Вид обеспечения", "Рейтинг 1", "Рейтинг 2"]
 
 
+class FileController (object):
+	
+	def __init__(self):
+		pass
+		
+	def read(self, in_file: str) -> str:
+		try:
+			f = open(in_file, "r", encoding="UTF-8")
+		except FileNotFoundError:
+			print("Converter: Input file doesn't exist!")
+			return None
+		else:
+			with f:
+				string = f.read()
+				return string
+	
+	def write(self, out_file: str, string: str):
+		try:
+			with open(out_file, "w") as f:
+				f.write(string)
+		except PermissionError:
+			print("Converter: Couldn't create output file!")
+
+
 class RawData:
     raw_string_list: list
 
-    def __init__(self):
-        self.string = ""
+    def __init__(self, string):
 
-    def populate(self, in_file: str):
-        try:
-            f = open(in_file, "r", encoding="UTF-8")
-        except FileNotFoundError:
-            print("Converter: Input file doesn't exist!")
-            return
-        else:
-            with f:
-                self.string = f.read()
-
-    def split(self):
         # TODO следующий вариант с базой для более удобной сортировки и фильтрации
-        self.raw_string_list = self.string.split(endl)
+        self.raw_string_list = string.split(endl)
 
         if len(self.raw_string_list) % params != 0:
             print("Converter: Raw data is unaligned!")
@@ -61,23 +73,6 @@ class CsvData:
 
     def get_bonds(self) -> list:
         return self.bonds
-
-    def export(self, out_file: str, header: list):
-        try:
-            with open(out_file, "w") as f:
-                f.write(form_record(header))
-                for b in self.bonds:
-                    f.write(str(b))
-
-                # for i in range(0, len(raw_string_list), params):
-                #     f.write(form_record(raw_string_list[i:i + params]))
-                #     cnt += 1
-
-            print("Converter: {} records have been written!".format(self.records))
-            print(self.bonds)
-
-        except PermissionError:
-            print("Converter: Couldn't create output file!")
 
 
 # @dataclass
@@ -156,8 +151,7 @@ def form_record(strings) -> str:
 
 if __name__ == "__main__":
     raw_bonds = RawData()
-    raw_bonds.populate(in_file)
-    raw_bonds.split()
+    #f.write(form_record(header))
 
     if raw_bonds is not None:
         csv_bonds = CsvData(raw_bonds.get_data(), params)
