@@ -1,4 +1,5 @@
-import csv
+# import csv
+from peewee import *
 from builtins import str
 
 params = 15  # 14
@@ -6,6 +7,7 @@ sep = ";"
 endl = "\n"
 in_file = "Data/bonds.txt"
 out_file = "Data/bonds.csv"
+db = SqliteDatabase(':memory:')
 
 headict = {
     "title": "Наименование",
@@ -81,6 +83,35 @@ class BondBuilder:
         return Bond(self)
 
 
+class DbBond(Model):
+    title = CharField()
+    isin = CharField()
+    listing = CharField()
+    redemption_date = CharField()
+    de = CharField()
+
+    class Meta:
+        database = db # This model uses in-memory database.
+
+
+def db_test():
+    db.connect()
+    db.create_tables([DbBond])
+
+    fc = FileController()
+
+    raw_bonds = RawData(fc.read(in_file))
+
+    if raw_bonds is not None:
+        csv_bonds = CsvData(raw_bonds.get_data(), params)
+
+        for b in csv_bonds.get_bonds():
+            dbbond = DbBond.create(title=b.title, isin=b.isin, listing=b.listing, redemption_date=b.redemption_date, de=b.de)
+
+        for b in DbBond.select().where(DbBond.listing == 'Второй уровень листинга'):
+            print("{} {} {}".format(b.title, b.isin, b.listing))
+
+
 class FileController (object):
 	
 	def __init__(self):
@@ -110,7 +141,6 @@ class RawData:
 
     def __init__(self, string):
 
-        # TODO следующий вариант с базой для более удобной сортировки и фильтрации
         self.raw_string_list = string.split(endl)
 
         if len(self.raw_string_list) % params != 0:
@@ -145,7 +175,7 @@ class CsvData:
                 .set_de(raw_slice[5])\
                 .build()
 
-            print(bond)
+            # print(bond)
             self.bonds.append(bond)
             self.records += 1
 
@@ -162,8 +192,7 @@ class CsvData:
         return str(self.header)
 
 
-if __name__ == "__main__":
-
+def convert():
     fc = FileController()
 
     raw_bonds = RawData(fc.read(in_file))
@@ -176,3 +205,8 @@ if __name__ == "__main__":
         fc.write(out_file, out_string + "".join(csv_bonds.get_strings()))
 
         print("Converter: done converting")
+
+if __name__ == "__main__":
+    # convert()
+
+    db_test()
